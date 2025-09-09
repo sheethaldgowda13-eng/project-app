@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Hub - Student Management System</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="#" id="manifestLink">
+    <meta name="theme-color" content="#4f46e5">
+    
+    <!-- iOS PWA Support -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Student Hub">
+    
+    <!-- App Icons (SVG-based) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJncmFkIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojNGY0NmU1O3N0b3Atb3BhY2l0eToxIiAvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzdjM2FlZDtzdG9wLW9wYWNpdHk6MSIgLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSI4IiBmaWxsPSJ1cmwoI2dyYWQpIi8+PGNpcmNsZSBjeD0iMzIiIGN5PSIyNCIgcj0iOCIgZmlsbD0id2hpdGUiLz48cmVjdCB4PSIxNiIgeT0iMzYiIHdpZHRoPSIzMiIgaGVpZ2h0PSI0IiByeD0iMiIgZmlsbD0id2hpdGUiLz48cmVjdCB4PSIyMCIgeT0iNDQiIHdpZHRoPSIyNCIgaGVpZ2h0PSIyIiByeD0iMSIgZmlsbD0id2hpdGUiIG9wYWNpdHk9IjAuOCIvPjwvc3ZnPg==">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- PWA Manifest and Service Worker Setup -->
+    <script>
+        // Create PWA Manifest
+        const manifestData = {
+            "name": "Student Hub - Student Management System",
+            "short_name": "Student Hub",
+            "description": "Complete student management system with AI analytics",
+            "start_url": "./",
+            "display": "standalone",
+            "background_color": "#4f46e5",
+            "theme_color": "#4f46e5",
+            "orientation": "portrait-primary",
+            "icons": [
+                {
+                    "src": "data:image/svg+xml;base64," + btoa(`
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+                            <defs>
+                                <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#4f46e5;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                            <rect width="192" height="192" rx="24" fill="url(#grad1)"/>
+                            <circle cx="96" cy="72" r="24" fill="white"/>
+                            <rect x="48" y="108" width="96" height="12" rx="6" fill="white"/>
+                            <rect x="60" y="132" width="72" height="6" rx="3" fill="white" opacity="0.8"/>
+                        </svg>
+                    `),
+                    "sizes": "192x192",
+                    "type": "image/svg+xml",
+                    "purpose": "maskable any"
+                },
+                {
+                    "src": "data:image/svg+xml;base64," + btoa(`
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                            <defs>
+                                <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#4f46e5;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                            <rect width="512" height="512" rx="64" fill="url(#grad2)"/>
+                            <circle cx="256" cy="200" r="40" fill="white"/>
+                            <rect x="176" y="280" width="160" height="20" rx="10" fill="white"/>
+                        </svg>
+                    `),
+                    "sizes": "512x512",
+                    "type": "image/svg+xml",
+                    "purpose": "maskable any"
+                }
+            ]
+        };
+
+        // Service Worker Code
+        const serviceWorkerCode = `
+            const CACHE_NAME = 'student-hub-v1';
+            const urlsToCache = [
+                './',
+                'https://cdn.tailwindcss.com',
+                'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
+                'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap',
+                'https://cdn.jsdelivr.net/npm/chart.js'
+            ];
+
+            self.addEventListener('install', function(event) {
+                event.waitUntil(
+                    caches.open(CACHE_NAME)
+                        .then(function(cache) {
+                            return cache.addAll(urlsToCache);
+                        })
+                );
+            });
+
+            self.addEventListener('fetch', function(event) {
+                event.respondWith(
+                    caches.match(event.request)
+                        .then(function(response) {
+                            if (response) {
+                                return response;
+                            }
+                            return fetch(event.request);
+                        })
+                );
+            });
+        `;
+
+        // Initialize PWA
+        function initializePWA() {
+            const manifestBlob = new Blob([JSON.stringify(manifestData)], {type: 'application/json'});
+            const manifestURL = URL.createObjectURL(manifestBlob);
+            document.getElementById('manifestLink').href = manifestURL;
+
+            if ('serviceWorker' in navigator) {
+                const swBlob = new Blob([serviceWorkerCode], {type: 'application/javascript'});
+                const swURL = URL.createObjectURL(swBlob);
+                
+                window.addEventListener('load', function() {
+                    navigator.serviceWorker.register(swURL)
+                        .then(function(registration) {
+                            console.log('PWA: ServiceWorker registered');
+                        })
+                        .catch(function(err) {
+                            console.log('PWA: ServiceWorker registration failed');
+                        });
+                });
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializePWA);
+        } else {
+            initializePWA();
+        }
+    </script>
+
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        
+        .gradient-bg { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); }
+        
+        .btn-modern {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            border: none; border-radius: 12px; padding: 12px 24px;
+            color: white; font-weight: 600; cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-modern:hover { transform: translateY(-2px); }
+        
+        .input-modern {
+            border: 2px solid #e2e8f0; border-radius: 12px;
+            padding: 12px 16px; transition: all 0.3s ease;
+        }
+        
+        .input-modern:focus {
+            border-color: #667eea; outline: none;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .auth-container {
+            min-height: 100vh; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            display: flex; align-items: center; justify-content: center; padding: 20px;
+        }
+        
+        .auth-card {
+            background: white; border-radius: 24px; padding: 40px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            width: 100%; max-width: 450px;
+        }
+        
+        .install-prompt {
+            position: fixed; bottom: 20px; left: 20px; right: 20px;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white; padding: 16px; border-radius: 12px;
+            display: none; z-index: 1001;
+        }
+        
+        .install-prompt.show { display: block; animation: slideUp 0.3s ease; }
+        
+        @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .notification {
+            position: fixed; top: 20px; right: 20px; z-index: 1000;
+            display: none; border-radius: 12px; padding: 16px 24px;
+            color: white; font-weight: 600;
+        }
+        
+        .notification.success { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .notification.error { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+        
+        @media (max-width: 768px) {
+            .auth-card { padding: 24px; margin: 20px; }
+            .install-prompt { left: 10px; right: 10px; bottom: 10px; }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <!-- PWA Install Prompt -->
+    <div id="installPrompt" class="install-prompt">
+        <div class="flex items-center justify-between">
+            <div class="flex-1">
+                <h4 class="font-semibold mb-1">📱 Install Student Hub</h4>
+                <p class="text-sm opacity-90">Add to your home screen for quick access!</p>
+            </div>
+            <div class="flex space-x-2 ml-4">
+                <button onclick="installApp()" class="bg-white text-purple-600 px-4 py-2 rounded-lg font-semibold text-sm">
+                    Install
+                </button>
+                <button onclick="dismissInstallPrompt()" class="text-white opacity-75 hover:opacity-100">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications -->
+    <div id="successNotification" class="notification success">
+        <i class="fas fa-check-circle mr-2"></i>
+        <span id="successMessage">Success!</span>
+    </div>
+    <div id="errorNotification" class="notification error">
+        <i class="fas fa-exclamation-circle mr-2"></i>
+        <span id="errorMessage">Error!</span>
+    </div>
+
+    <!-- Authentication Screen -->
+    <div id="authScreen" class="auth-container">
+        <div class="auth-card">
+            <div id="loginForm">
+                <div class="text-center mb-8">
+                    <div class="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-graduation-cap text-3xl text-white"></i>
+                    </div>
+                    <h1 class="text-3xl font-bold text-gray-800 mb-2">Student Hub</h1>
+                    <p class="text-gray-600">Student Management System</p>
+                </div>
+                
+                <form onsubmit="handleLogin(event)">
+                    <div class="mb-6">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Username or Email</label>
+                        <input type="text" id="loginUsername" required class="input-modern w-full" placeholder="Enter username or email">
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+                        <input type="password" id="loginPassword" required class="input-modern w-full" placeholder="Enter password">
+                    </div>
+                    
+                    <button type="submit" class="btn-modern w-full mb-4">
+                        <i class="fas fa-sign-in-alt mr-2"></i>
+                        Sign In
+                    </button>
+                </form>
+                
+                <!-- Demo Info -->
+                <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                    <h4 class="font-semibold text-blue-800 mb-2">📱 Mobile App Demo:</h4>
+                    <div class="text-sm text-blue-700 space-y-1">
+                        <div><strong>Student:</strong> student / student123</div>
+                        <div><strong>Teacher:</strong> teacher / teacher123</div>
+                        <div><strong>Admin:</strong> admin / admin123</div>
+                    </div>
+                </div>
+                
+                <div class="mt-4 p-4 bg-green-50 rounded-lg">
+                    <h4 class="font-semibold text-green-800 mb-2">📱 Install as Mobile App:</h4>
+                    <p class="text-sm text-green-700">This app can be installed on your phone! Look for "Add to Home Screen" in your browser menu.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // PWA Variables
+        let deferredPrompt;
+        let isInstalled = false;
+
+        // Check if app is installed
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            isInstalled = true;
+        }
+
+        // PWA Functions
+        function showInstallPrompt() {
+            if (!isInstalled && !localStorage.getItem('installPromptDismissed')) {
+                document.getElementById('installPrompt').classList.add('show');
+            }
+        }
+
+        function installApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        showSuccess('📱 App installed successfully!');
+                        isInstalled = true;
+                    }
+                    deferredPrompt = null;
+                    dismissInstallPrompt();
+                });
+            } else {
+                showInstallInstructions();
+            }
+        }
+
+        function dismissInstallPrompt() {
+            document.getElementById('installPrompt').classList.remove('show');
+            localStorage.setItem('installPromptDismissed', 'true');
+        }
+
+        function showInstallInstructions() {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const isAndroid = /Android/.test(navigator.userAgent);
+            
+            let instructions = '';
+            if (isIOS) {
+                instructions = '📱 To install on iOS:\n1. Tap Share (⬆️) in Safari\n2. Select "Add to Home Screen"\n3. Tap "Add"';
+            } else if (isAndroid) {
+                instructions = '📱 To install on Android:\n1. Tap menu (⋮) in Chrome\n2. Select "Add to Home screen"\n3. Tap "Add"';
+            } else {
+                instructions = '📱 To install:\n1. Look for install icon in address bar\n2. Click and follow prompts';
+            }
+            alert(instructions);
+        }
+
+        // Utility Functions
+        function showSuccess(message) {
+            const notification = document.getElementById('successNotification');
+            document.getElementById('successMessage').textContent = message;
+            notification.style.display = 'block';
+            setTimeout(() => notification.style.display = 'none', 3000);
+        }
+
+        function showError(message) {
+            const notification = document.getElementById('errorNotification');
+            document.getElementById('errorMessage').textContent = message;
+            notification.style.display = 'block';
+            setTimeout(() => notification.style.display = 'none', 3000);
+        }
+
+        // Login Function
+        function handleLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            // Demo login logic
+            if ((username === 'student' && password === 'student123') ||
+                (username === 'teacher' && password === 'teacher123') ||
+                (username === 'admin' && password === 'admin123')) {
+                showSuccess('Login successful! Welcome to Student Hub!');
+                // Here you would redirect to main app
+                setTimeout(() => {
+                    alert('🎉 Login successful!\n\nThis is a demo. In the full version, you would now access the complete Student Management System with:\n\n✅ Student Records\n✅ Grade Management\n✅ Attendance Tracking\n✅ AI Analytics\n✅ Reports & More!');
+                }, 1000);
+            } else {
+                showError('Invalid credentials! Use demo accounts above.');
+            }
+        }
+
+        // PWA Event Listeners
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            setTimeout(showInstallPrompt, 3000);
+        });
+
+        window.addEventListener('appinstalled', () => {
+            showSuccess('🎉 Student Hub installed successfully!');
+            isInstalled = true;
+            dismissInstallPrompt();
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!isInstalled) {
+                setTimeout(showInstallPrompt, 5000);
+            }
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'975ba6fa6201b2b7',t:'MTc1NjI5ODU4Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
